@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins
+module github.com/sound2gd/go-plugins
 
 require (
 	cloud.google.com/go v0.37.0
