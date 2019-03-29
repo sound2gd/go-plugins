@@ -43,8 +43,17 @@ func (c *client) WatchPods(labels map[string]string) (watch.Watch, error) {
 	return api.NewRequest(c.opts).Get().Resource("pods").Params(&api.Params{LabelSelector: labels}).Watch()
 }
 
+// add support for TELEPRESENCE support
+func getServiceAccountPath() string {
+        rootPath, ok := os.LookupEnv("TELEPRESENCE_ROOT")
+        if !ok {
+                return serviceAccountPath
+        }
+        return rootPath + serviceAccountPath
+}
+
 func detectNamespace() (string, error) {
-	nsPath := path.Join(serviceAccountPath, "namespace")
+	nsPath := path.Join(getServiceAccountPath(), "namespace")
 
 	// Make sure it's a file and we can read it
 	if s, e := os.Stat(nsPath); e != nil {
@@ -89,7 +98,7 @@ func NewClientByHost(host string) Kubernetes {
 func NewClientInCluster() Kubernetes {
 	host := "https://" + os.Getenv("KUBERNETES_SERVICE_HOST") + ":" + os.Getenv("KUBERNETES_SERVICE_PORT")
 
-	s, err := os.Stat(serviceAccountPath)
+	s, err := os.Stat(getServiceAccountPath())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -97,7 +106,7 @@ func NewClientInCluster() Kubernetes {
 		log.Fatal(errors.New("no k8s service account found"))
 	}
 
-	token, err := ioutil.ReadFile(path.Join(serviceAccountPath, "token"))
+	token, err := ioutil.ReadFile(path.Join(getServiceAccountPath(), "token"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -108,7 +117,7 @@ func NewClientInCluster() Kubernetes {
 		log.Fatal(err)
 	}
 
-	crt, err := CertPoolFromFile(path.Join(serviceAccountPath, "ca.crt"))
+	crt, err := CertPoolFromFile(path.Join(getServiceAccountPath(), "ca.crt"))
 	if err != nil {
 		log.Fatal(err)
 	}
